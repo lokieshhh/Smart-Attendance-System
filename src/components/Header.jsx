@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   CheckCircle2, 
@@ -9,11 +9,15 @@ import {
   User, 
   GraduationCap, 
   ShieldCheck, 
-  Sparkles,
-  RotateCcw,
-  Briefcase,
-  ArrowRightLeft
+  Sparkles, 
+  RotateCcw, 
+  Briefcase, 
+  ArrowRightLeft,
+  Moon,
+  Sun,
+  Settings
 } from 'lucide-react';
+import { ProfileModal } from './ProfileModal';
 
 export const Header = () => {
   const { 
@@ -21,16 +25,20 @@ export const Header = () => {
     logout, 
     viewMode, 
     setViewMode, 
-    switchUserRole, 
+    darkMode,
+    toggleDarkMode,
     activeTab, 
     setActiveTab, 
     unreadAlertCount,
     resetAllData 
   } = useApp();
 
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 transition-all">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-2.5 transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        
         {/* Brand Logo */}
         <div 
           onClick={() => setActiveTab('home')} 
@@ -40,17 +48,17 @@ export const Header = () => {
             <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
           </div>
           <div>
-            <span className="font-bold text-slate-800 text-lg leading-tight flex items-center gap-1.5">
+            <span className="font-bold text-slate-800 dark:text-white text-lg leading-tight flex items-center gap-1.5">
               Smart Attendance
               <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 bg-teal-100 text-teal-800 rounded-full">Pro</span>
             </span>
-            <p className="text-[11px] text-slate-500 hidden sm:block">Digital Attendance Marking & Early Alerts</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Digital Attendance Marking & Early Alerts</p>
           </div>
         </div>
 
         {/* Current Active Portal Status / Quick Portal Switcher */}
         {currentUser ? (
-          <div className="hidden md:flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 text-xs">
+          <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
             <span className="text-[11px] text-slate-400 font-semibold px-1">Active Portal:</span>
             {currentUser.role === 'student' ? (
               <span className="bg-teal-600 text-white px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 shadow-2xs">
@@ -69,10 +77,9 @@ export const Header = () => {
               </span>
             )}
 
-            {/* Switch Account button */}
             <button
               onClick={logout}
-              className="text-[11px] text-slate-600 hover:text-teal-700 hover:bg-slate-200/70 px-2 py-1 rounded-lg transition-colors flex items-center gap-1"
+              className="text-[11px] text-slate-600 dark:text-slate-300 hover:text-teal-700 hover:bg-slate-200/70 dark:hover:bg-slate-700 px-2 py-1 rounded-lg transition-colors flex items-center gap-1 font-medium"
               title="Switch between Student & Faculty portals"
             >
               <ArrowRightLeft className="w-3 h-3" />
@@ -91,33 +98,43 @@ export const Header = () => {
           </div>
         )}
 
-        {/* Right Tools: View Mode Toggle, Alerts, User Profile */}
+        {/* Right Tools: Dark Mode, View Mode, Alerts, User Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
+          
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors"
+            title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
+          </button>
+
           {/* View Mode Toggle: Phone Frame vs Desktop */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
             <button
               onClick={() => setViewMode('mobile')}
               title="Mobile Mockup View (Matches 6-screen image)"
               className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 transition-all ${
                 viewMode === 'mobile'
-                  ? 'bg-white text-teal-700 shadow-xs font-bold'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-xs font-bold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
               }`}
             >
               <Smartphone className="w-4 h-4" />
-              <span className="hidden lg:inline text-[11px]">Mockup View</span>
+              <span className="hidden lg:inline text-[11px]">Mockup</span>
             </button>
             <button
               onClick={() => setViewMode('desktop')}
               title="Desktop Web Portal View"
               className={`p-1.5 rounded-md text-xs font-medium flex items-center gap-1 transition-all ${
                 viewMode === 'desktop'
-                  ? 'bg-white text-teal-700 shadow-xs font-bold'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-xs font-bold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
               }`}
             >
               <Monitor className="w-4 h-4" />
-              <span className="hidden lg:inline text-[11px]">Desktop Portal</span>
+              <span className="hidden lg:inline text-[11px]">Desktop</span>
             </button>
           </div>
 
@@ -125,7 +142,7 @@ export const Header = () => {
           {currentUser && (
             <button
               onClick={() => setActiveTab('alerts')}
-              className="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+              className="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="Notifications & Early Alerts"
             >
               <Bell className="w-5 h-5" />
@@ -145,29 +162,36 @@ export const Header = () => {
               }
             }}
             title="Reset Demo Data"
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors hidden sm:block"
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors hidden sm:block"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
 
-          {/* Current User Badge & Logout */}
+          {/* Current User Badge & Profile Settings */}
           {currentUser ? (
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-700">
+              <div 
+                onClick={() => setShowProfileModal(true)}
+                className="flex items-center gap-2 cursor-pointer group"
+                title="Edit Account & Contact Settings"
+              >
                 <img
                   src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80'}
                   alt={currentUser.name}
-                  className="w-8 h-8 rounded-full object-cover ring-2 ring-teal-500/20"
+                  className="w-8 h-8 rounded-full object-cover ring-2 ring-teal-500/20 group-hover:ring-teal-500 transition-all"
                 />
                 <div className="hidden sm:block text-left">
-                  <p className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[110px]">{currentUser.name}</p>
-                  <p className="text-[10px] text-teal-700 font-semibold uppercase">{currentUser.role}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight truncate max-w-[110px] flex items-center gap-1">
+                    {currentUser.name}
+                  </p>
+                  <p className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold uppercase">{currentUser.role}</p>
                 </div>
               </div>
+
               <button
                 onClick={logout}
                 title="Log out"
-                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -182,6 +206,9 @@ export const Header = () => {
           )}
         </div>
       </div>
+
+      {/* PROFILE SETTINGS MODAL */}
+      <ProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
     </header>
   );
 };

@@ -1,5 +1,5 @@
-// Initial Mock Data for Smart Attendance System
-// Faithfully matches the 6 mock-up screens and includes rich college data
+// Enhanced Mock Data for Smart Attendance System
+// Production-grade college management data with Timetable, Defaulter Tracking & Student Profiles
 
 export const INITIAL_CLASSES = [
   { id: 'class_se_a', name: 'SE-A', department: 'Computer Engineering', semester: 'Semester 3', division: 'A', totalStudents: 64, room: 'Room CS-302' },
@@ -16,20 +16,133 @@ export const INITIAL_SUBJECTS = [
 ];
 
 export const INITIAL_STUDENTS = [
-  { id: 'stu_01', rollNo: '01', name: 'Aarav Patil', classId: 'class_se_a', email: 'aarav.patil@college.edu', phone: '+91 98201 12345', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&auto=format&fit=crop&q=80' },
-  { id: 'stu_02', rollNo: '02', name: 'Isha Kulkarni', classId: 'class_se_a', email: 'isha.kulkarni@college.edu', phone: '+91 98201 23456', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80' },
-  { id: 'stu_03', rollNo: '03', name: 'Rohan Desai', classId: 'class_se_a', email: 'rohan.desai@college.edu', phone: '+91 98201 34567', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80' },
-  { id: 'stu_04', rollNo: '04', name: 'Sneha Joshi', classId: 'class_se_a', email: 'sneha.joshi@college.edu', phone: '+91 98201 45678', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&auto=format&fit=crop&q=80' },
-  { id: 'stu_05', rollNo: '05', name: 'Kunal More', classId: 'class_se_a', email: 'kunal.more@college.edu', phone: '+91 98201 56789', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80' },
-  { id: 'stu_06', rollNo: '06', name: 'Priya Sharma', classId: 'class_se_a', email: 'priya.sharma@college.edu', phone: '+91 98201 67890', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop&q=80' },
-  { id: 'stu_07', rollNo: '07', name: 'Vikram Rao', classId: 'class_se_a', email: 'vikram.rao@college.edu', phone: '+91 98201 78901', avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=120&auto=format&fit=crop&q=80' },
-  { id: 'stu_08', rollNo: '08', name: 'Ananya Gupta', classId: 'class_se_a', email: 'ananya.gupta@college.edu', phone: '+91 98201 89012', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80' }
+  { 
+    id: 'stu_01', 
+    rollNo: '01', 
+    prn: '2024CS0148',
+    name: 'Aarav Patil', 
+    classId: 'class_se_a', 
+    email: 'aarav.patil@college.edu', 
+    phone: '+91 98201 12345', 
+    parentName: 'Sanjay Patil',
+    parentPhone: '+91 98220 54321',
+    bloodGroup: 'B+',
+    validThru: '2027',
+    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&auto=format&fit=crop&q=80' 
+  },
+  { 
+    id: 'stu_02', 
+    rollNo: '02', 
+    prn: '2024CS0149',
+    name: 'Isha Kulkarni', 
+    classId: 'class_se_a', 
+    email: 'isha.kulkarni@college.edu', 
+    phone: '+91 98201 23456', 
+    parentName: 'Ramesh Kulkarni',
+    parentPhone: '+91 98220 65432',
+    bloodGroup: 'O+',
+    validThru: '2027',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80' 
+  },
+  { 
+    id: 'stu_03', 
+    rollNo: '03', 
+    prn: '2024CS0150',
+    name: 'Rohan Desai', 
+    classId: 'class_se_a', 
+    email: 'rohan.desai@college.edu', 
+    phone: '+91 98201 34567', 
+    parentName: 'Vinod Desai',
+    parentPhone: '+91 98220 76543',
+    bloodGroup: 'A+',
+    validThru: '2027',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80' 
+  },
+  { 
+    id: 'stu_04', 
+    rollNo: '04', 
+    prn: '2024CS0151',
+    name: 'Sneha Joshi', 
+    classId: 'class_se_a', 
+    email: 'sneha.joshi@college.edu', 
+    phone: '+91 98201 45678', 
+    parentName: 'Prakash Joshi',
+    parentPhone: '+91 98220 87654',
+    bloodGroup: 'AB+',
+    validThru: '2027',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&auto=format&fit=crop&q=80' 
+  },
+  { 
+    id: 'stu_05', 
+    rollNo: '05', 
+    prn: '2024CS0152',
+    name: 'Kunal More', 
+    classId: 'class_se_a', 
+    email: 'kunal.more@college.edu', 
+    phone: '+91 98201 56789', 
+    parentName: 'Mahesh More',
+    parentPhone: '+91 98220 98765',
+    bloodGroup: 'O-',
+    validThru: '2027',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80' 
+  },
+  { 
+    id: 'stu_06', 
+    rollNo: '06', 
+    prn: '2024CS0153',
+    name: 'Priya Sharma', 
+    classId: 'class_se_a', 
+    email: 'priya.sharma@college.edu', 
+    phone: '+91 98201 67890', 
+    parentName: 'Anil Sharma',
+    parentPhone: '+91 98220 12399',
+    bloodGroup: 'B-',
+    validThru: '2027',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop&q=80' 
+  },
+  { 
+    id: 'stu_07', 
+    rollNo: '07', 
+    prn: '2024CS0154',
+    name: 'Vikram Rao', 
+    classId: 'class_se_a', 
+    email: 'vikram.rao@college.edu', 
+    phone: '+91 98201 78901', 
+    parentName: 'Kishore Rao',
+    parentPhone: '+91 98220 23411',
+    bloodGroup: 'A-',
+    validThru: '2027',
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=120&auto=format&fit=crop&q=80' 
+  },
+  { 
+    id: 'stu_08', 
+    rollNo: '08', 
+    prn: '2024CS0155',
+    name: 'Ananya Gupta', 
+    classId: 'class_se_a', 
+    email: 'ananya.gupta@college.edu', 
+    phone: '+91 98201 89012', 
+    parentName: 'Rajeev Gupta',
+    parentPhone: '+91 98220 34522',
+    bloodGroup: 'AB-',
+    validThru: '2027',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80' 
+  }
 ];
 
 export const INITIAL_FACULTY = [
   { id: 'fac_01', staffId: 'FAC-101', name: 'Dr. R. K. Sharma', department: 'Computer Engineering', email: 'rk.sharma@college.edu', designation: 'Associate Professor', assignedSubjects: ['sub_maths', 'sub_physics'] },
   { id: 'fac_02', staffId: 'FAC-102', name: 'Prof. Sunita Deshmukh', department: 'Applied Sciences', email: 'sunita.deshmukh@college.edu', designation: 'Assistant Professor', assignedSubjects: ['sub_chem'] },
   { id: 'fac_03', staffId: 'FAC-103', name: 'Prof. John Smith', department: 'Humanities & English', email: 'john.smith@college.edu', designation: 'Lecturer', assignedSubjects: ['sub_eng'] }
+];
+
+// Today's Live Academic Timetable
+export const INITIAL_TIMETABLE = [
+  { period: 1, time: '09:00 AM - 10:00 AM', subject: 'Maths', code: 'MTH-301', room: 'Room CS-302', faculty: 'Dr. R. K. Sharma', status: 'Completed', markedToday: true },
+  { period: 2, time: '10:00 AM - 11:00 AM', subject: 'Physics', code: 'PHY-302', room: 'Room CS-302', faculty: 'Dr. R. K. Sharma', status: 'Live Now', markedToday: false },
+  { period: 3, time: '11:15 AM - 12:15 PM', subject: 'Chemistry', code: 'CHM-303', room: 'Lab Chem-104', faculty: 'Prof. Sunita Deshmukh', status: 'Upcoming', markedToday: false },
+  { period: 4, time: '01:00 PM - 02:00 PM', subject: 'English', code: 'ENG-304', room: 'Room CS-302', faculty: 'Prof. John Smith', status: 'Upcoming', markedToday: false },
+  { period: 5, time: '02:00 PM - 04:00 PM', subject: 'Computing Lab', code: 'CS-305', room: 'Lab Computer-2', faculty: 'Dr. R. K. Sharma', status: 'Upcoming', markedToday: false }
 ];
 
 // Generates historical attendance matrix matching Aarav's exact numbers:
@@ -41,7 +154,6 @@ export const INITIAL_FACULTY = [
 export const generateInitialAttendanceRecords = () => {
   const records = {};
 
-  // Helper to format date YYYY-MM-DD
   const getDateStr = (offsetDays) => {
     const d = new Date(2026, 9, 22); // Oct 22, 2026
     d.setDate(d.getDate() - offsetDays);
@@ -52,7 +164,6 @@ export const generateInitialAttendanceRecords = () => {
   };
 
   // 1. Maths (20 sessions)
-  // Aarav absent on sessions 5 and 12 (18 present, 2 absent)
   for (let i = 0; i < 20; i++) {
     const dateStr = getDateStr(i);
     const key = `class_se_a_sub_maths_${dateStr}`;
@@ -64,9 +175,9 @@ export const generateInitialAttendanceRecords = () => {
       statuses: {
         stu_01: (i === 5 || i === 12) ? 'A' : 'P', // Aarav: 18 P, 2 A
         stu_02: 'P',
-        stu_03: (i % 3 === 0) ? 'A' : 'P', // Rohan absent occasionally
+        stu_03: (i % 3 === 0) ? 'A' : 'P', // Rohan absent
         stu_04: 'P',
-        stu_05: (i % 2 === 0) ? 'A' : 'P', // Kunal absent occasionally
+        stu_05: (i % 2 === 0) ? 'A' : 'P',
         stu_06: 'P',
         stu_07: 'P',
         stu_08: 'P'
@@ -75,7 +186,6 @@ export const generateInitialAttendanceRecords = () => {
   }
 
   // 2. Physics (20 sessions)
-  // Aarav absent on sessions 2, 7, 11, 16, 18 (15 present, 5 absent = 75%)
   for (let i = 0; i < 20; i++) {
     const dateStr = getDateStr(i);
     const key = `class_se_a_sub_physics_${dateStr}`;
@@ -98,7 +208,6 @@ export const generateInitialAttendanceRecords = () => {
   }
 
   // 3. Chemistry (20 sessions)
-  // Aarav absent on sessions 0, 3, 6, 9, 13, 17 (14 present, 6 absent = 70% -> Defaulter Alert!)
   for (let i = 0; i < 20; i++) {
     const dateStr = getDateStr(i);
     const key = `class_se_a_sub_chem_${dateStr}`;
@@ -108,7 +217,7 @@ export const generateInitialAttendanceRecords = () => {
       date: dateStr,
       markedBy: 'fac_02',
       statuses: {
-        stu_01: [0, 3, 6, 9, 13, 17].includes(i) ? 'A' : 'P', // Aarav: 14 P, 6 A (70%)
+        stu_01: [0, 3, 6, 9, 13, 17].includes(i) ? 'A' : 'P', // Aarav: 14 P, 6 A (70% Defaulter)
         stu_02: 'P',
         stu_03: (i % 4 === 0) ? 'A' : 'P',
         stu_04: 'P',
@@ -121,7 +230,6 @@ export const generateInitialAttendanceRecords = () => {
   }
 
   // 4. English (25 sessions)
-  // Aarav absent on sessions 4, 10, 19 (22 present, 3 absent = 88%)
   for (let i = 0; i < 25; i++) {
     const dateStr = getDateStr(i);
     const key = `class_se_a_sub_eng_${dateStr}`;
@@ -149,7 +257,7 @@ export const generateInitialAttendanceRecords = () => {
 export const INITIAL_NOTIFICATIONS = [
   {
     id: 'notif_1',
-    type: 'critical', // red alert
+    type: 'critical',
     title: 'Low attendance: Chemistry 70%',
     time: 'Today, 9:10 AM',
     timestamp: '2026-10-22T09:10:00Z',
@@ -160,7 +268,7 @@ export const INITIAL_NOTIFICATIONS = [
   },
   {
     id: 'notif_2',
-    type: 'success', // green
+    type: 'success',
     title: 'Leave request approved',
     time: 'Yesterday',
     timestamp: '2026-10-21T14:30:00Z',
@@ -171,7 +279,7 @@ export const INITIAL_NOTIFICATIONS = [
   },
   {
     id: 'notif_3',
-    type: 'info', // neutral
+    type: 'info',
     title: 'Attendance marked: Physics',
     time: '20 Oct',
     timestamp: '2026-10-20T11:00:00Z',
@@ -182,7 +290,7 @@ export const INITIAL_NOTIFICATIONS = [
   },
   {
     id: 'notif_4',
-    type: 'info', // neutral
+    type: 'info',
     title: 'Monthly report ready',
     time: '18 Oct',
     timestamp: '2026-10-18T16:00:00Z',
@@ -287,7 +395,6 @@ export const INITIAL_ANNOUNCEMENTS = [
   }
 ];
 
-// Admin KPI summary
 export const INITIAL_ADMIN_STATS = {
   totalUsers: 1240,
   totalClasses: 48,

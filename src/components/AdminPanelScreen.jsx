@@ -13,10 +13,15 @@ import {
   Trash2, 
   Search, 
   Plus, 
-  X,
-  CheckCircle2,
-  ChevronRight
+  X, 
+  CheckCircle2, 
+  ChevronRight,
+  MessageSquare,
+  Upload,
+  BarChart3
 } from 'lucide-react';
+import { ParentAlertModal } from './ParentAlertModal';
+import { BulkImportModal } from './BulkImportModal';
 
 export const AdminPanelScreen = () => {
   const { 
@@ -36,6 +41,10 @@ export const AdminPanelScreen = () => {
   // Active sub-modal or view: 'none', 'users', 'classes', 'reports', 'notice'
   const [activeModal, setActiveModal] = useState('none');
   const [userSearch, setUserSearch] = useState('');
+
+  // Modals state
+  const [showParentAlerts, setShowParentAlerts] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
 
   // Form states
   const [newStudentForm, setNewStudentForm] = useState({ name: '', rollNo: '', email: '', classId: 'class_se_a' });
@@ -110,7 +119,6 @@ export const AdminPanelScreen = () => {
 
       {/* 4 Stat Metric Cards (Matching Screen 6 Mockup 2x2 Grid) */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Card 1: Users */}
         <div 
           onClick={() => setActiveModal('users')}
           className="bg-teal-50/70 border border-teal-200/80 rounded-2xl p-4 text-center cursor-pointer hover:bg-teal-100/60 transition-all shadow-2xs group"
@@ -123,7 +131,6 @@ export const AdminPanelScreen = () => {
           </span>
         </div>
 
-        {/* Card 2: Classes */}
         <div 
           onClick={() => setActiveModal('classes')}
           className="bg-teal-50/70 border border-teal-200/80 rounded-2xl p-4 text-center cursor-pointer hover:bg-teal-100/60 transition-all shadow-2xs group"
@@ -136,7 +143,6 @@ export const AdminPanelScreen = () => {
           </span>
         </div>
 
-        {/* Card 3: Avg. Att. */}
         <div 
           onClick={() => setActiveModal('reports')}
           className="bg-teal-50/70 border border-teal-200/80 rounded-2xl p-4 text-center cursor-pointer hover:bg-teal-100/60 transition-all shadow-2xs group"
@@ -149,22 +155,22 @@ export const AdminPanelScreen = () => {
           </span>
         </div>
 
-        {/* Card 4: Alerts */}
         <div 
-          onClick={() => setActiveModal('reports')}
-          className="bg-teal-50/70 border border-teal-200/80 rounded-2xl p-4 text-center cursor-pointer hover:bg-teal-100/60 transition-all shadow-2xs group"
+          onClick={() => setShowParentAlerts(true)}
+          className="bg-red-50/80 border border-red-200 rounded-2xl p-4 text-center cursor-pointer hover:bg-red-100/70 transition-all shadow-2xs group"
         >
           <span className="text-2xl sm:text-3xl font-extrabold text-red-600 block group-hover:scale-105 transition-transform">
             {adminStats.totalAlerts}
           </span>
-          <span className="text-xs font-semibold text-teal-900/70 mt-1 block">
+          <span className="text-xs font-semibold text-red-900/70 mt-1 block">
             Alerts (<span className="text-red-600 font-bold">&lt;75%</span>)
           </span>
         </div>
       </div>
 
-      {/* 4 Main Action Buttons matching Screen 6 Mockup */}
+      {/* Main Action Buttons matching Screen 6 Mockup + Enterprise Upgrades */}
       <div className="space-y-2.5 pt-1">
+        
         {/* Manage Users Button */}
         <button
           type="button"
@@ -199,7 +205,7 @@ export const AdminPanelScreen = () => {
         >
           <span className="flex items-center gap-2">
             <FileSpreadsheet className="w-4 h-4 text-teal-400" />
-            Generate Reports
+            Generate Defaulters Audit
           </span>
           <ChevronRight className="w-4 h-4 text-slate-400" />
         </button>
@@ -216,6 +222,27 @@ export const AdminPanelScreen = () => {
           </span>
           <ChevronRight className="w-4 h-4 text-teal-200" />
         </button>
+
+        {/* Parent Defaulter SMS Desk (NEW) */}
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => setShowParentAlerts(true)}
+            className="py-3 px-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Parent Alerts Desk
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowBulkImport(true)}
+            className="py-3 px-3 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <Upload className="w-4 h-4 text-teal-400" />
+            Bulk CSV Enrollment
+          </button>
+        </div>
       </div>
 
       {/* MODAL 1: Manage Users */}
@@ -239,7 +266,6 @@ export const AdminPanelScreen = () => {
             </div>
 
             <div className="p-4 flex-1 overflow-y-auto space-y-3">
-              {/* Search & Add New Toggle */}
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
                   <input
@@ -260,7 +286,6 @@ export const AdminPanelScreen = () => {
                 </button>
               </div>
 
-              {/* Add Student Form */}
               {showAddStudent && (
                 <form onSubmit={handleCreateStudent} className="p-3 bg-teal-50/70 border border-teal-200 rounded-xl space-y-2 text-xs">
                   <h4 className="font-bold text-teal-900 text-xs">Enroll New Student</h4>
@@ -307,7 +332,6 @@ export const AdminPanelScreen = () => {
                 </form>
               )}
 
-              {/* Student list */}
               <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden text-xs">
                 {students
                   .filter(s => s.name.toLowerCase().includes(userSearch.toLowerCase()))
@@ -356,7 +380,6 @@ export const AdminPanelScreen = () => {
             </div>
 
             <div className="p-4 flex-1 overflow-y-auto space-y-4 text-xs">
-              {/* Classes Section */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">Enrolled Classes</h4>
@@ -405,7 +428,6 @@ export const AdminPanelScreen = () => {
                 </div>
               </div>
 
-              {/* Subjects Section */}
               <div className="pt-2 border-t border-slate-100">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">Subject Allocations</h4>
@@ -595,6 +617,10 @@ export const AdminPanelScreen = () => {
           </div>
         </div>
       )}
+
+      {/* EXTERNAL MODALS */}
+      <ParentAlertModal isOpen={showParentAlerts} onClose={() => setShowParentAlerts(false)} />
+      <BulkImportModal isOpen={showBulkImport} onClose={() => setShowBulkImport(false)} />
     </div>
   );
 };

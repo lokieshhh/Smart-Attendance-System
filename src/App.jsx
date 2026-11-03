@@ -9,6 +9,7 @@ import { AttendanceReportScreen } from './components/AttendanceReportScreen';
 import { NotificationsScreen } from './components/NotificationsScreen';
 import { AdminPanelScreen } from './components/AdminPanelScreen';
 import { LeaveManagementScreen } from './components/LeaveManagementScreen';
+import { Toast } from './components/Toast';
 import { 
   Smartphone, 
   Monitor, 
@@ -71,16 +72,19 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors">
       {/* Top Universal App Bar */}
       <Header />
+
+      {/* Floating System Toast Alerts */}
+      <Toast />
 
       {/* Main Container */}
       <main className="flex-1 flex flex-col items-center justify-start p-3 sm:p-6 lg:p-8">
         
-        {/* Quick Mockup Screen Jump Bar (Matches Figure 1: 6 Screens) */}
-        <div className="w-full max-w-4xl mb-4 bg-white/80 backdrop-blur-sm p-2 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-1.5 pl-2 text-slate-500 font-semibold">
+        {/* Quick Mockup Screen Jump Bar (Matches Figure 1: 6 Screens + Shortcuts) */}
+        <div className="w-full max-w-4xl mb-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-2 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 pl-2 text-slate-500 dark:text-slate-400 font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-teal-600" />
             <span className="hidden sm:inline">Inspect Mockup Screens:</span>
           </div>
@@ -90,7 +94,9 @@ export default function App() {
             <button
               onClick={() => { logout(); }}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
-                !currentUser ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                !currentUser 
+                  ? 'bg-slate-900 dark:bg-teal-600 text-white font-bold' 
+                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300'
               }`}
             >
               1. Login / Portals
@@ -108,7 +114,7 @@ export default function App() {
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
                 currentUser?.role === 'student' && activeTab === 'home'
                   ? 'bg-teal-600 text-white font-bold'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300'
               }`}
             >
               2. Student Dashboard
@@ -117,13 +123,12 @@ export default function App() {
             {/* Screen 3: Mark Attendance (Faculty Protected) */}
             <button
               onClick={() => {
-                // If not logged in as faculty or admin, navigate to attend tab to demonstrate the security gate!
                 setActiveTab('attend');
               }}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 ${
                 activeTab === 'attend' 
                   ? 'bg-teal-600 text-white font-bold' 
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300'
               }`}
             >
               <span>3. Mark Attendance</span>
@@ -139,7 +144,7 @@ export default function App() {
                 setActiveTab('reports');
               }}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
-                activeTab === 'reports' ? 'bg-teal-600 text-white font-bold' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                activeTab === 'reports' ? 'bg-teal-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300'
               }`}
             >
               4. Attendance Report
@@ -152,7 +157,7 @@ export default function App() {
                 setActiveTab('alerts');
               }}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
-                activeTab === 'alerts' ? 'bg-teal-600 text-white font-bold' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                activeTab === 'alerts' ? 'bg-teal-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300'
               }`}
             >
               5. Notifications
@@ -164,7 +169,7 @@ export default function App() {
                 loginAdmin();
               }}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
-                activeTab === 'admin' ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                activeTab === 'admin' ? 'bg-slate-900 dark:bg-teal-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300'
               }`}
             >
               6. Admin Panel
@@ -177,7 +182,7 @@ export default function App() {
                 setActiveTab('leave');
               }}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
-                activeTab === 'leave' ? 'bg-teal-600 text-white font-bold' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                activeTab === 'leave' ? 'bg-teal-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300'
               }`}
             >
               Leave Mgmt
@@ -195,7 +200,7 @@ export default function App() {
             </div>
 
             {/* Phone Screen Canvas */}
-            <div className="flex-1 bg-white rounded-[32px] overflow-hidden flex flex-col relative border border-slate-200">
+            <div className="flex-1 bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden flex flex-col relative border border-slate-200 dark:border-slate-800">
               
               {/* Screen Header Bar */}
               <div className="bg-slate-900 text-white px-4 py-2 text-center text-xs font-semibold select-none flex items-center justify-between">
@@ -220,7 +225,7 @@ export default function App() {
                 {renderScreenContent()}
               </div>
 
-              {/* Screen Bottom Navigation (Always present when logged in, just like the mockup) */}
+              {/* Screen Bottom Navigation */}
               {currentUser && <BottomNav />}
             </div>
 
@@ -229,7 +234,7 @@ export default function App() {
           </div>
         ) : (
           /* View Mode 2: Full Responsive Desktop / Tablet Portal */
-          <div className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col lg:flex-row min-h-[700px]">
+          <div className="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden flex flex-col lg:flex-row min-h-[700px]">
             {/* Sidebar Navigation */}
             <aside className="w-full lg:w-64 bg-slate-900 text-white p-5 flex flex-col justify-between shrink-0">
               <div>
@@ -353,8 +358,8 @@ export default function App() {
             </aside>
 
             {/* Desktop Main Content Area */}
-            <div className="flex-1 bg-slate-50/50 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-              <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200/80 shadow-xs p-2 sm:p-4">
+            <div className="flex-1 bg-slate-50/50 dark:bg-slate-950/50 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+              <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-2 sm:p-4">
                 {renderScreenContent()}
               </div>
             </div>
@@ -363,9 +368,9 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="py-3 px-4 text-center text-xs text-slate-500 border-t border-slate-200 bg-white">
+      <footer className="py-3 px-4 text-center text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <p className="flex items-center justify-center gap-2">
-          <span>Smart Attendance System • Built for Netlify & Vercel</span>
+          <span>Smart Attendance System Pro • Built for Netlify & Vercel</span>
           <span>•</span>
           <button 
             onClick={() => {
@@ -373,7 +378,7 @@ export default function App() {
                 resetAllData();
               }
             }} 
-            className="text-teal-700 hover:underline font-semibold"
+            className="text-teal-700 dark:text-teal-400 hover:underline font-semibold"
           >
             Reset Demo Data
           </button>

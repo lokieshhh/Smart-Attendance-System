@@ -9,16 +9,23 @@ import {
   Sparkles, 
   CheckCircle2, 
   Filter, 
-  Clock,
-  ArrowRight,
-  BookOpen,
-  Lock,
-  ShieldAlert,
-  GraduationCap,
-  Briefcase,
-  AlertCircle
+  Clock, 
+  ArrowRight, 
+  BookOpen, 
+  Lock, 
+  ShieldAlert, 
+  GraduationCap, 
+  Briefcase, 
+  AlertCircle,
+  QrCode,
+  Upload,
+  MessageSquare,
+  FileSpreadsheet
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { QRModal } from './QRModal';
+import { BulkImportModal } from './BulkImportModal';
+import { ParentAlertModal } from './ParentAlertModal';
 
 export const MarkAttendanceScreen = () => {
   const { 
@@ -44,6 +51,11 @@ export const MarkAttendanceScreen = () => {
   // Local state for interactive editing of statuses
   const [statusMap, setStatusMap] = useState({});
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Modals state
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [showParentAlerts, setShowParentAlerts] = useState(false);
 
   // Filter subjects for the selected class
   const classSubjects = useMemo(() => {
@@ -121,9 +133,7 @@ export const MarkAttendanceScreen = () => {
         origin: { y: 0.8 },
         colors: ['#0d9488', '#10b981', '#14b8a6']
       });
-    } catch (err) {
-      // ignore
-    }
+    } catch (err) { /* ignore */ }
 
     setTimeout(() => {
       setSaveSuccess(false);
@@ -134,12 +144,12 @@ export const MarkAttendanceScreen = () => {
   const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
 
   // =========================================================================
-  // IF NOT LOGGED IN AS FACULTY: RENDER ACCESS RESTRICTION SCREEN (Requirement 2)
+  // IF NOT LOGGED IN AS FACULTY: RENDER ACCESS RESTRICTION SCREEN
   // =========================================================================
   if (!isFaculty) {
     return (
       <div className="space-y-4 max-w-xl mx-auto p-4 sm:p-5 text-center">
-        <div className="bg-white rounded-2xl border-2 border-amber-200 p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-3xl border-2 border-amber-200 p-6 shadow-xs space-y-4">
           <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto shadow-inner">
             <Lock className="w-8 h-8 stroke-[2.2]" />
           </div>
@@ -154,13 +164,13 @@ export const MarkAttendanceScreen = () => {
           </div>
 
           {currentUser ? (
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 max-w-sm mx-auto text-left">
+            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-600 max-w-sm mx-auto text-left">
               <span className="text-slate-400 block text-[10px] uppercase font-semibold">Current Account:</span>
               <p className="font-bold text-slate-800">{currentUser.name}</p>
               <p className="text-[11px] text-teal-700 font-medium">Role: Student (Roll No: {currentUser.rollNo || '01'}, Class: {currentUser.className || 'SE-A'})</p>
             </div>
           ) : (
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 max-w-sm mx-auto">
+            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-600 max-w-sm mx-auto">
               You are currently not logged in.
             </div>
           )}
@@ -185,19 +195,49 @@ export const MarkAttendanceScreen = () => {
           </div>
         </div>
 
-        {/* Read-only Student explanation */}
         <p className="text-[11px] text-slate-400">
-          Tip: Students can inspect subject percentage breakdowns and monthly attendance trends in the <b>Reports</b> tab.
+          Tip: Students can view attendance percentage breakdowns and monthly trends in the <b>Reports</b> tab.
         </p>
       </div>
     );
   }
 
   // =========================================================================
-  // FACULTY IS LOGGED IN: FULLY ENABLED ATTENDANCE MARKING (Matching Mockup Screen 3)
+  // FACULTY IS LOGGED IN: FULLY ENABLED ATTENDANCE MARKING
   // =========================================================================
   return (
     <div className="space-y-3.5 max-w-xl mx-auto p-4 sm:p-5">
+      
+      {/* Faculty Tools Action Bar */}
+      <div className="grid grid-cols-3 gap-2 text-center select-none">
+        <button
+          type="button"
+          onClick={() => setShowQRModal(true)}
+          className="p-2.5 bg-white border border-teal-200 hover:bg-teal-50/80 rounded-2xl transition-all flex items-center justify-center gap-2 text-teal-800 font-bold text-xs shadow-2xs group"
+        >
+          <QrCode className="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
+          <span>Project Live QR</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowBulkImport(true)}
+          className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-2xl transition-all flex items-center justify-center gap-2 text-slate-700 font-semibold text-xs shadow-2xs group"
+        >
+          <Upload className="w-4 h-4 text-slate-500 group-hover:scale-110 transition-transform" />
+          <span>Import CSV</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowParentAlerts(true)}
+          className="p-2.5 bg-white border border-red-200 hover:bg-red-50/80 rounded-2xl transition-all flex items-center justify-center gap-2 text-red-700 font-bold text-xs shadow-2xs group"
+        >
+          <MessageSquare className="w-4 h-4 text-red-500 group-hover:scale-110 transition-transform" />
+          <span>Parent Alerts</span>
+        </button>
+      </div>
+
       {/* Header bar matching Mockup: Class: SE-A | Maths | 22 Oct */}
       <div className="bg-slate-900 text-white p-3.5 rounded-2xl shadow-sm space-y-3">
         <div className="flex items-center justify-between text-xs border-b border-slate-800 pb-2.5">
@@ -205,14 +245,13 @@ export const MarkAttendanceScreen = () => {
             <BookOpen className="w-4 h-4" />
             Screen 3: Mark Attendance
           </span>
-          <span className="text-[11px] text-emerald-400 font-semibold bg-emerald-950/70 px-2 py-0.5 rounded-full border border-emerald-800">
+          <span className="text-[11px] text-emerald-400 font-semibold bg-emerald-950/70 px-2.5 py-0.5 rounded-full border border-emerald-800">
             ✓ Faculty: {currentUser?.name}
           </span>
         </div>
 
         {/* Dynamic Class, Subject & Date Selectors */}
         <div className="grid grid-cols-3 gap-2 text-xs">
-          {/* Class Selector */}
           <div>
             <label className="block text-[10px] text-slate-400 font-semibold mb-1">Class</label>
             <select
@@ -226,7 +265,6 @@ export const MarkAttendanceScreen = () => {
             </select>
           </div>
 
-          {/* Subject Selector */}
           <div>
             <label className="block text-[10px] text-slate-400 font-semibold mb-1">Subject</label>
             <select
@@ -240,7 +278,6 @@ export const MarkAttendanceScreen = () => {
             </select>
           </div>
 
-          {/* Date Selector (Allows editing past or future dates!) */}
           <div>
             <label className="block text-[10px] text-slate-400 font-semibold mb-1">Session Date</label>
             <input
@@ -252,7 +289,6 @@ export const MarkAttendanceScreen = () => {
           </div>
         </div>
 
-        {/* Selected Summary Pill */}
         <div className="bg-slate-800/80 px-3 py-1.5 rounded-lg flex items-center justify-between text-[11px] text-slate-300">
           <span className="font-semibold text-teal-300">
             {selectedClass?.name || 'SE-A'} • {selectedSubject?.name || 'Maths'} • {new Date(selectedDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
@@ -261,13 +297,13 @@ export const MarkAttendanceScreen = () => {
         </div>
       </div>
 
-      {/* Search student bar (matching mockup "Search student...") */}
+      {/* Search student bar */}
       <div className="relative">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search student..."
+          placeholder="Search student by name or roll no..."
           className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition-all shadow-2xs"
         />
         <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -307,7 +343,6 @@ export const MarkAttendanceScreen = () => {
               key={student.id}
               className="p-3 sm:px-4 flex items-center justify-between hover:bg-slate-50/80 transition-colors"
             >
-              {/* Roll No & Student Name */}
               <div className="flex items-center gap-3">
                 <span className="text-xs font-mono font-bold text-slate-400 w-6">
                   {student.rollNo}
@@ -327,9 +362,7 @@ export const MarkAttendanceScreen = () => {
                 </div>
               </div>
 
-              {/* [ P ] and [ A ] Buttons matching mockup screen exactly */}
               <div className="flex items-center gap-2">
-                {/* [ P ] Button: Green filled when active */}
                 <button
                   type="button"
                   onClick={() => toggleStatus(student.id, 'P')}
@@ -342,7 +375,6 @@ export const MarkAttendanceScreen = () => {
                   P
                 </button>
 
-                {/* [ A ] Button: Red filled when active */}
                 <button
                   type="button"
                   onClick={() => toggleStatus(student.id, 'A')}
@@ -378,7 +410,6 @@ export const MarkAttendanceScreen = () => {
         </span>
       </div>
 
-      {/* Success Banner */}
       {saveSuccess && (
         <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-800 text-xs font-medium flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -394,6 +425,11 @@ export const MarkAttendanceScreen = () => {
       >
         SUBMIT ATTENDANCE
       </button>
+
+      {/* MODALS */}
+      <QRModal isOpen={showQRModal} onClose={() => setShowQRModal(false)} />
+      <BulkImportModal isOpen={showBulkImport} onClose={() => setShowBulkImport(false)} />
+      <ParentAlertModal isOpen={showParentAlerts} onClose={() => setShowParentAlerts(false)} />
     </div>
   );
 };

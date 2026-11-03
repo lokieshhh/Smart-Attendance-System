@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -19,7 +20,7 @@ export default {
           800: '#115e59',
           900: '#134e4a',
           dark: '#0e4a45',
-          primary: '#0d8076', // Deep teal from mockup
+          primary: '#0d8076',
         }
       },
       fontFamily: {

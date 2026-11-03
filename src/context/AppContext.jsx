@@ -8,6 +8,7 @@ import {
   INITIAL_LEAVE_REQUESTS,
   INITIAL_ANNOUNCEMENTS,
   INITIAL_ADMIN_STATS,
+  INITIAL_TIMETABLE,
   generateInitialAttendanceRecords
 } from '../data/initialData';
 
@@ -23,21 +24,22 @@ const STORAGE_KEYS = {
   NOTIFICATIONS: 'smart_attend_notifications',
   LEAVES: 'smart_attend_leaves',
   ANNOUNCEMENTS: 'smart_attend_announcements',
-  VIEW_MODE: 'smart_attend_view_mode'
+  TIMETABLE: 'smart_attend_timetable',
+  PARENT_NOTICES: 'smart_attend_parent_notices',
+  VIEW_MODE: 'smart_attend_view_mode',
+  DARK_MODE: 'smart_attend_dark_mode'
 };
 
 export const AppProvider = ({ children }) => {
-  // 1. Current logged in user (starts null so user sees the login page first)
+  // 1. Current logged in user (starts null so user sees the login portal first)
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
     if (saved) {
       try { 
         return JSON.parse(saved); 
-      } catch (e) { 
-        /* ignore */ 
-      }
+      } catch (e) { /* ignore */ }
     }
-    return null; // Prompt for login
+    return null;
   });
 
   // 2. Active Tab & Display View Mode
@@ -46,7 +48,33 @@ export const AppProvider = ({ children }) => {
     return localStorage.getItem(STORAGE_KEYS.VIEW_MODE) || 'mobile'; // 'mobile' | 'desktop'
   });
 
-  // 3. Database States
+  // 3. Dark Mode
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem(STORAGE_KEYS.DARK_MODE) === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.DARK_MODE, darkMode);
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => setDarkMode(prev => !prev);
+
+  // 4. Toast Notification State
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ id: Date.now(), message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3800);
+  };
+
+  // 5. Database States
   const [classes, setClasses] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.CLASSES);
     return saved ? JSON.parse(saved) : INITIAL_CLASSES;
@@ -85,6 +113,42 @@ export const AppProvider = ({ children }) => {
   const [announcements, setAnnouncements] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.ANNOUNCEMENTS);
     return saved ? JSON.parse(saved) : INITIAL_ANNOUNCEMENTS;
+  });
+
+  const [timetable, setTimetable] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.TIMETABLE);
+    return saved ? JSON.parse(saved) : INITIAL_TIMETABLE;
+  });
+
+  const [parentNotices, setParentNotices] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.PARENT_NOTICES);
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 'pnotif_01',
+        studentId: 'stu_01',
+        studentName: 'Aarav Patil',
+        parentName: 'Sanjay Patil',
+        parentPhone: '+91 98220 54321',
+        subject: 'Applied Chemistry',
+        percentage: 70,
+        sentAt: '2026-10-22 09:15 AM',
+        status: 'Delivered (WhatsApp & SMS)',
+        message: 'Dear Parent, your ward Aarav Patil has an attendance of 70% in Applied Chemistry (below 75% university requirement). Please meet HOD before 31st Oct.'
+      }
+    ];
+  });
+
+  // 6. Active Live QR Code Session (Dynamic Classroom Attendance)
+  const [qrSession, setQrSession] = useState({
+    active: false,
+    sessionCode: '',
+    subjectId: 'sub_maths',
+    subjectName: 'Maths',
+    classId: 'class_se_a',
+    className: 'SE-A',
+    room: 'Room CS-302',
+    expiresAt: null,
+    checkedInStudents: [] // array of student objects
   });
 
   // Sync state changes with localStorage
@@ -129,13 +193,20 @@ export const AppProvider = ({ children }) => {
   }, [announcements]);
 
   useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.TIMETABLE, JSON.stringify(timetable));
+  }, [timetable]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.PARENT_NOTICES, JSON.stringify(parentNotices));
+  }, [parentNotices]);
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.VIEW_MODE, viewMode);
   }, [viewMode]);
 
   // --- AUTHENTICATION & LOGIN LOGIC ---
 
-  // Student Login by email or Roll Number
-  const loginStudent = (identifier, password) => {
+  const loginStudent = (identifier) => {
     const cleanId = (identifier || '').trim().toLowerCase();
     const student = students.find(s => 
       s.email.toLowerCase() === cleanId || 
@@ -157,10 +228,10 @@ export const AppProvider = ({ children }) => {
 
     setCurrentUser(userSession);
     setActiveTab('home');
+    showToast(`Welcome back, ${student.name}!`, 'info');
     return { success: true, user: userSession };
   };
 
-  // 1-Click Login as a specific Student (For testing different attendance profiles!)
   const loginStudentById = (studentId) => {
     const student = students.find(s => s.id === studentId) || students[0];
     const assignedClass = classes.find(c => c.id === student.classId);
@@ -172,10 +243,10 @@ export const AppProvider = ({ children }) => {
     };
     setCurrentUser(userSession);
     setActiveTab('home');
+    showToast(`Logged in as ${student.name} (Roll ${student.rollNo})`, 'success');
   };
 
-  // Faculty Login by email or Staff ID
-  const loginFaculty = (identifier, password) => {
+  const loginFaculty = (identifier) => {
     const cleanId = (identifier || '').trim().toLowerCase();
     const teacher = faculty.find(f => 
       f.email.toLowerCase() === cleanId || 
@@ -194,11 +265,11 @@ export const AppProvider = ({ children }) => {
     };
 
     setCurrentUser(userSession);
-    setActiveTab('attend'); // Direct faculty straight to Mark Attendance
+    setActiveTab('attend');
+    showToast(`Faculty portal active: ${teacher.name}`, 'info');
     return { success: true, user: userSession };
   };
 
-  // 1-Click Login as a specific Faculty
   const loginFacultyById = (facultyId) => {
     const teacher = faculty.find(f => f.id === facultyId) || faculty[0];
     const userSession = {
@@ -208,9 +279,9 @@ export const AppProvider = ({ children }) => {
     };
     setCurrentUser(userSession);
     setActiveTab('attend');
+    showToast(`Logged in as ${teacher.name}`, 'success');
   };
 
-  // Admin Login
   const loginAdmin = () => {
     const userSession = {
       id: 'adm_01',
@@ -222,37 +293,30 @@ export const AppProvider = ({ children }) => {
     };
     setCurrentUser(userSession);
     setActiveTab('admin');
+    showToast('Administrator session activated', 'info');
     return { success: true, user: userSession };
   };
 
-  // Unified legacy login helper for compatibility
   const login = (role, customEmail) => {
-    if (role === 'student') {
-      loginStudent(customEmail || 'aarav.patil@college.edu');
-    } else if (role === 'faculty') {
-      loginFaculty(customEmail || 'rk.sharma@college.edu');
-    } else if (role === 'admin') {
-      loginAdmin();
-    }
+    if (role === 'student') loginStudent(customEmail || 'aarav.patil@college.edu');
+    else if (role === 'faculty') loginFaculty(customEmail || 'FAC-101');
+    else if (role === 'admin') loginAdmin();
   };
 
-  // Logout clears session
   const logout = () => {
     localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
     setCurrentUser(null);
     setActiveTab('home');
+    showToast('Signed out successfully', 'info');
   };
 
-  // Quick switch role
   const switchUserRole = (targetRole) => {
     login(targetRole);
   };
 
   // --- CREATE LOGIN ID / REGISTRATION ---
 
-  // Register a new Student ID
   const registerStudent = ({ name, rollNo, classId, email, password }) => {
-    // Check if roll number or email is already taken in this class
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanRoll = (rollNo || '').trim();
 
@@ -269,19 +333,22 @@ export const AppProvider = ({ children }) => {
     const newStudent = {
       id: newId,
       rollNo: cleanRoll,
+      prn: `2024CS0${Math.floor(100 + Math.random() * 899)}`,
       name: name.trim(),
       classId: assignedClass.id,
       email: cleanEmail,
       phone: '+91 98000 00000',
+      parentName: 'Parent of ' + name.trim(),
+      parentPhone: '+91 98220 00000',
+      bloodGroup: 'B+',
+      validThru: '2027',
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name.trim())}`
     };
 
-    // Populate initial attendance sessions for this student so their dashboard is fully functional
     const updatedRecords = { ...attendanceRecords };
     Object.keys(updatedRecords).forEach(sessionKey => {
       const session = updatedRecords[sessionKey];
       if (session.classId === assignedClass.id) {
-        // Assign 85% attendance by default
         session.statuses[newId] = Math.random() > 0.15 ? 'P' : 'A';
       }
     });
@@ -289,7 +356,6 @@ export const AppProvider = ({ children }) => {
     setAttendanceRecords(updatedRecords);
     setStudents(prev => [...prev, newStudent]);
 
-    // Automatically log in the new student
     const sessionUser = {
       ...newStudent,
       role: 'student',
@@ -298,11 +364,11 @@ export const AppProvider = ({ children }) => {
     };
     setCurrentUser(sessionUser);
     setActiveTab('home');
+    showToast(`Account created for ${newStudent.name}!`, 'success');
 
     return { success: true, user: sessionUser };
   };
 
-  // Register a new Faculty Member
   const registerFaculty = ({ name, staffId, department, email, password, assignedSubjects }) => {
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanStaffId = (staffId || '').trim().toUpperCase();
@@ -325,26 +391,24 @@ export const AppProvider = ({ children }) => {
 
     setFaculty(prev => [...prev, newFaculty]);
 
-    // Automatically log in the new faculty
     const sessionUser = {
       ...newFaculty,
       role: 'faculty'
     };
     setCurrentUser(sessionUser);
     setActiveTab('attend');
+    showToast(`Faculty registered: ${newFaculty.name}`, 'success');
 
     return { success: true, user: sessionUser };
   };
 
   // --- ATTENDANCE FUNCTIONS ---
 
-  // Helper: Get or query attendance for a given class, subject, and date
   const getAttendanceForSession = (classId, subjectId, dateStr) => {
     const key = `${classId}_${subjectId}_${dateStr}`;
     if (attendanceRecords[key]) {
       return attendanceRecords[key].statuses;
     }
-    // Return empty or default Present for all students in class
     const classStudents = students.filter(s => s.classId === classId);
     const defaults = {};
     classStudents.forEach(s => {
@@ -353,11 +417,9 @@ export const AppProvider = ({ children }) => {
     return defaults;
   };
 
-  // Mark / Edit attendance for any date (STRICTLY RESTRICTED TO FACULTY / ADMIN)
   const markAttendance = (classId, subjectId, dateStr, statuses, markedById = currentUser?.id) => {
-    // SECURITY CHECK: Only faculty or admin can mark or edit attendance
     if (currentUser?.role !== 'faculty' && currentUser?.role !== 'admin') {
-      alert('Access Denied: Only authorized faculty members can mark or edit attendance.');
+      showToast('Access Denied: Only faculty can mark attendance.', 'error');
       return false;
     }
 
@@ -374,8 +436,9 @@ export const AppProvider = ({ children }) => {
       }
     };
     setAttendanceRecords(newRecords);
+    showToast('Attendance updated and percentages recalculated!', 'success');
 
-    // Check if any student falls below 75% for this subject and trigger alert
+    // Trigger low attendance alert if student drops < 75%
     const targetSubject = subjects.find(s => s.id === subjectId);
     const subjectName = targetSubject ? targetSubject.name : 'Subject';
 
@@ -386,9 +449,7 @@ export const AppProvider = ({ children }) => {
         Object.values(newRecords).forEach(session => {
           if (session.classId === classId && session.subjectId === subjectId && session.statuses[student.id]) {
             total++;
-            if (session.statuses[student.id] === 'P') {
-              attended++;
-            }
+            if (session.statuses[student.id] === 'P') attended++;
           }
         });
 
@@ -416,6 +477,199 @@ export const AppProvider = ({ children }) => {
     });
 
     return true;
+  };
+
+  // --- DYNAMIC QR CODE ATTENDANCE SYSTEM ---
+
+  const startQRSession = (subjectId, classId, room) => {
+    const sub = subjects.find(s => s.id === subjectId) || subjects[0];
+    const cls = classes.find(c => c.id === classId) || classes[0];
+    const code = 'MIT-' + Math.floor(1000 + Math.random() * 9000);
+
+    setQrSession({
+      active: true,
+      sessionCode: code,
+      subjectId: sub.id,
+      subjectName: sub.name,
+      classId: cls.id,
+      className: cls.name,
+      room: room || cls.room,
+      expiresAt: Date.now() + 60000, // 60 seconds validity
+      checkedInStudents: []
+    });
+
+    showToast(`Live QR Session started for ${sub.name}!`, 'info');
+  };
+
+  const refreshQRCode = () => {
+    if (!qrSession.active) return;
+    const newCode = 'MIT-' + Math.floor(1000 + Math.random() * 9000);
+    setQrSession(prev => ({
+      ...prev,
+      sessionCode: newCode,
+      expiresAt: Date.now() + 60000
+    }));
+    showToast('QR Code refreshed with new secure token!', 'info');
+  };
+
+  const closeQRSession = () => {
+    if (!qrSession.active) return;
+
+    // Commit attendance for checked in students
+    const todayStr = new Date().toISOString().split('T')[0];
+    const key = `${qrSession.classId}_${qrSession.subjectId}_${todayStr}`;
+    const statuses = getAttendanceForSession(qrSession.classId, qrSession.subjectId, todayStr);
+
+    // Mark checked in students Present, others absent if not marked
+    qrSession.checkedInStudents.forEach(stu => {
+      statuses[stu.id] = 'P';
+    });
+
+    markAttendance(qrSession.classId, qrSession.subjectId, todayStr, statuses);
+    showToast(`QR session closed. ${qrSession.checkedInStudents.length} students recorded!`, 'success');
+
+    setQrSession({
+      active: false,
+      sessionCode: '',
+      subjectId: 'sub_maths',
+      subjectName: 'Maths',
+      classId: 'class_se_a',
+      className: 'SE-A',
+      room: 'Room CS-302',
+      expiresAt: null,
+      checkedInStudents: []
+    });
+  };
+
+  const studentScanQR = (submittedCode) => {
+    if (!currentUser || currentUser.role !== 'student') {
+      showToast('Only students can scan classroom QR codes.', 'error');
+      return { success: false, message: 'Invalid role' };
+    }
+
+    if (!qrSession.active) {
+      showToast('No active classroom attendance session found.', 'error');
+      return { success: false, message: 'Session inactive' };
+    }
+
+    if (qrSession.sessionCode !== submittedCode.trim().toUpperCase()) {
+      showToast('Invalid or expired QR token! Ask faculty for the live code.', 'error');
+      return { success: false, message: 'Invalid code' };
+    }
+
+    // Check if already scanned
+    if (qrSession.checkedInStudents.some(s => s.id === currentUser.id)) {
+      showToast('You have already checked into this lecture!', 'info');
+      return { success: true, message: 'Already marked' };
+    }
+
+    // Add student to live checked in list
+    setQrSession(prev => ({
+      ...prev,
+      checkedInStudents: [
+        { id: currentUser.id, name: currentUser.name, rollNo: currentUser.rollNo, timestamp: new Date().toLocaleTimeString() },
+        ...prev.checkedInStudents
+      ]
+    }));
+
+    // Instantly mark Present for today
+    const todayStr = new Date().toISOString().split('T')[0];
+    const key = `${qrSession.classId}_${qrSession.subjectId}_${todayStr}`;
+    const statuses = { ...getAttendanceForSession(qrSession.classId, qrSession.subjectId, todayStr), [currentUser.id]: 'P' };
+
+    const newRecords = {
+      ...attendanceRecords,
+      [key]: {
+        classId: qrSession.classId,
+        subjectId: qrSession.subjectId,
+        date: todayStr,
+        markedBy: 'Live-QR-Scan',
+        updatedAt: new Date().toISOString(),
+        statuses
+      }
+    };
+    setAttendanceRecords(newRecords);
+
+    showToast(`Verified! You are marked PRESENT for ${qrSession.subjectName}.`, 'success');
+    return { success: true, message: 'Attendance recorded' };
+  };
+
+  // --- PARENT ALERT & DEFAULTER DISPATCHER ---
+
+  const sendParentNotice = (studentId, subjectName, percentage, customNote = '') => {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return false;
+
+    const noticeObj = {
+      id: 'pnotif_' + Date.now(),
+      studentId: student.id,
+      studentName: student.name,
+      parentName: student.parentName || 'Parent / Guardian',
+      parentPhone: student.parentPhone || '+91 98220 00000',
+      subject: subjectName,
+      percentage: percentage,
+      sentAt: new Date().toLocaleString(),
+      status: 'Delivered (WhatsApp & SMS)',
+      message: customNote || `Official Alert from MIT: Attendance of ${student.name} in ${subjectName} is ${percentage}% (below 75%). Please meet HOD before semester cutoff.`
+    };
+
+    setParentNotices(prev => [noticeObj, ...prev]);
+
+    // Push notification to student's notification bell
+    const studentAlert = {
+      id: 'notif_parent_' + Date.now(),
+      type: 'critical',
+      title: `Parent Alert Dispatched: ${subjectName} (${percentage}%)`,
+      time: 'Just now',
+      timestamp: new Date().toISOString(),
+      category: 'alert',
+      message: `An official low-attendance warning was dispatched to your guardian (${student.parentPhone}) for falling below 75% in ${subjectName}.`,
+      read: false,
+      studentId: student.id
+    };
+    setNotifications(prev => [studentAlert, ...prev]);
+
+    showToast(`Notice dispatched to parent: ${student.parentPhone}`, 'success');
+    return true;
+  };
+
+  // --- STUDENT PROFILE EDITING ---
+
+  const updateStudentProfile = (studentId, updatedFields) => {
+    setStudents(prev => prev.map(s => {
+      if (s.id === studentId) {
+        return { ...s, ...updatedFields };
+      }
+      return s;
+    }));
+
+    if (currentUser?.id === studentId) {
+      setCurrentUser(prev => ({ ...prev, ...updatedFields }));
+    }
+
+    showToast('Profile information saved!', 'success');
+  };
+
+  // --- BULK ROSTER IMPORTER ---
+
+  const bulkImportStudents = (classId, studentRows) => {
+    const newStudents = studentRows.map((row, idx) => ({
+      id: 'stu_' + (Date.now() + idx),
+      rollNo: String(row.rollNo || (students.length + idx + 1)).padStart(2, '0'),
+      prn: `2024CS0${Math.floor(100 + Math.random() * 899)}`,
+      name: row.name || 'New Student',
+      classId: classId || 'class_se_a',
+      email: row.email || `student_${Date.now() + idx}@college.edu`,
+      phone: row.phone || '+91 98200 00000',
+      parentName: 'Guardian',
+      parentPhone: '+91 98220 00000',
+      bloodGroup: 'O+',
+      validThru: '2027',
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(row.name || 'Student')}`
+    }));
+
+    setStudents(prev => [...prev, ...newStudents]);
+    showToast(`Successfully enrolled ${newStudents.length} students from roster!`, 'success');
   };
 
   // Compute student subject-level stats
@@ -455,6 +709,13 @@ export const AppProvider = ({ children }) => {
           if (classesToRecover === 0) classesToRecover = 1;
         }
 
+        // Bunk allowance calculation:
+        // (attended) / (total + x) >= 0.75 => x <= (attended / 0.75) - total
+        let safeBunksAvailable = 0;
+        if (percentage >= 75) {
+          safeBunksAvailable = Math.max(0, Math.floor((effectiveAttended / 0.75) - effectiveTotal));
+        }
+
         return {
           id: sub.id,
           name: sub.name,
@@ -465,6 +726,7 @@ export const AppProvider = ({ children }) => {
           percentage,
           isLow: percentage < 75,
           classesToRecover,
+          safeBunksAvailable,
           facultyName: sub.facultyName
         };
       });
@@ -472,10 +734,21 @@ export const AppProvider = ({ children }) => {
       const overallPercentage = grandTotal > 0 ? Math.round((grandAttended / grandTotal) * 100) : 0;
       const lowSubjects = subjectStats.filter(s => s.isLow);
 
+      let overallSafeBunks = 0;
+      let overallClassesToRecover = 0;
+      if (overallPercentage >= 75) {
+        overallSafeBunks = Math.max(0, Math.floor((grandAttended / 0.75) - grandTotal));
+      } else {
+        overallClassesToRecover = Math.ceil(Math.max(0, (0.75 * grandTotal - grandAttended) / 0.25));
+        if (overallClassesToRecover === 0) overallClassesToRecover = 1;
+      }
+
       return {
         overall: overallPercentage,
         totalAttended: grandAttended,
         totalSessions: grandTotal,
+        overallSafeBunks,
+        overallClassesToRecover,
         subjects: subjectStats,
         lowSubjects
       };
@@ -524,14 +797,14 @@ export const AppProvider = ({ children }) => {
       studentId: currentUser.id
     };
     setNotifications(prev => [alertMsg, ...prev]);
+    showToast('Leave application submitted for faculty review!', 'success');
 
     return true;
   };
 
   const reviewLeaveRequest = (leaveId, newStatus, remarks = '') => {
-    // Only faculty and admin can review leaves
     if (currentUser?.role !== 'faculty' && currentUser?.role !== 'admin') {
-      alert('Access Denied: Only faculty can approve or reject leaves.');
+      showToast('Access Denied: Only faculty can review leaves.', 'error');
       return;
     }
 
@@ -562,24 +835,37 @@ export const AppProvider = ({ children }) => {
       }
       return req;
     }));
+
+    showToast(`Leave request ${newStatus.toLowerCase()}!`, newStatus === 'Approved' ? 'success' : 'info');
   };
 
   // Administration CRUD functions
   const addStudent = (newStudent) => {
     const id = 'stu_' + Date.now();
-    const created = { id, ...newStudent };
+    const created = { 
+      id, 
+      prn: `2024CS0${Math.floor(100 + Math.random() * 899)}`,
+      parentName: 'Guardian',
+      parentPhone: '+91 98220 00000',
+      bloodGroup: 'B+',
+      validThru: '2027',
+      ...newStudent 
+    };
     setStudents(prev => [...prev, created]);
+    showToast(`Student ${created.name} added!`, 'success');
     return created;
   };
 
   const deleteStudent = (studentId) => {
     setStudents(prev => prev.filter(s => s.id !== studentId));
+    showToast('Student deleted from registry.', 'info');
   };
 
   const addClass = (newClass) => {
     const id = 'class_' + Date.now();
     const created = { id, ...newClass };
     setClasses(prev => [...prev, created]);
+    showToast(`Class ${created.name} added!`, 'success');
     return created;
   };
 
@@ -587,6 +873,7 @@ export const AppProvider = ({ children }) => {
     const id = 'sub_' + Date.now();
     const created = { id, ...newSubject };
     setSubjects(prev => [...prev, created]);
+    showToast(`Subject ${created.name} added!`, 'success');
     return created;
   };
 
@@ -612,10 +899,12 @@ export const AppProvider = ({ children }) => {
       read: false
     };
     setNotifications(prev => [broadcastNotif, ...prev]);
+    showToast('Campus circular broadcasted!', 'success');
   };
 
   const markAllNotificationsAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    showToast('All notifications marked as read', 'info');
   };
 
   const unreadAlertCount = useMemo(() => {
@@ -632,8 +921,11 @@ export const AppProvider = ({ children }) => {
     setNotifications(INITIAL_NOTIFICATIONS);
     setLeaveRequests(INITIAL_LEAVE_REQUESTS);
     setAnnouncements(INITIAL_ANNOUNCEMENTS);
+    setTimetable(INITIAL_TIMETABLE);
+    setParentNotices([]);
     setCurrentUser(null);
     setActiveTab('home');
+    showToast('All data reset to factory demo values.', 'info');
   };
 
   return (
@@ -654,14 +946,28 @@ export const AppProvider = ({ children }) => {
         setActiveTab,
         viewMode,
         setViewMode,
+        darkMode,
+        toggleDarkMode,
+        toast,
+        showToast,
         classes,
         subjects,
         students,
         faculty,
+        timetable,
         attendanceRecords,
         getAttendanceForSession,
         markAttendance,
         getStudentStats,
+        qrSession,
+        startQRSession,
+        refreshQRCode,
+        closeQRSession,
+        studentScanQR,
+        parentNotices,
+        sendParentNotice,
+        updateStudentProfile,
+        bulkImportStudents,
         leaveRequests,
         submitLeaveRequest,
         reviewLeaveRequest,
